@@ -2,7 +2,7 @@
 
 <div align="center">
   
-![FinWise Logo](./frontend/logo.png)
+![FinWise Logo](./screenshots/logo.png)
 
 **Empowering individuals to make smarter financial decisions through cutting-edge technology and AI-driven insights.**
 
