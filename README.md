@@ -382,7 +382,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you have any questions or need help, please:
 
-- 📧 Email: [your-email@example.com](mailto:your-email@example.com)
+- 📧 Email: [your-email@example.com](mailto:nisargadey583@gmail.com)
 - 🐛 Issues: [GitHub Issues](https://github.com/yourusername/fin-wise/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/fin-wise/discussions)
 
