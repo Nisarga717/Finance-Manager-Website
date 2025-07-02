@@ -5,13 +5,13 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { 
-  Zap, 
-  Shield, 
-  BarChart3, 
-  Home, 
-  DollarSign, 
-  Receipt, 
+import {
+  Zap,
+  Shield,
+  BarChart3,
+  Home,
+  DollarSign,
+  Receipt,
   TrendingUp,
   Menu,
   X
@@ -26,13 +26,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  
+
   // Custom cursor effect
   React.useEffect(() => {
     const cursor = document.querySelector('.cursor-glow') as HTMLElement;
-    
+
     if (!cursor) return;
-    
+
     const onMouseMove = (e: MouseEvent) => {
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
@@ -56,7 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       document.removeEventListener('mouseleave', onMouseLeave);
     };
   }, []);
-  
+
   const handleLogout = () => {
     auth?.logout();
     navigate('/login');
@@ -82,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 backdrop-blur-lg bg-white/10 border-b border-white/20 sticky top-0">
+      <header className="relative z-50 backdrop-blur-lg bg-white/10 border-b border-white/20 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
@@ -110,8 +110,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Button
                       variant={isActive(item.path) ? "default" : "ghost"}
                       className={`relative overflow-hidden group btn-pulse ${
-                        isActive(item.path) 
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg' 
+                        isActive(item.path)
+                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                           : 'hover:bg-white/20 hover:text-purple-600'
                       }`}
                     >
@@ -164,8 +164,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <Button
                         variant={isActive(item.path) ? "default" : "ghost"}
                         className={`w-full justify-start ${
-                          isActive(item.path) 
-                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
+                          isActive(item.path)
+                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                             : 'hover:bg-white/20'
                         }`}
                       >
@@ -219,7 +219,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span>Bank-level security • End-to-end encryption</span>
               </div>
             </div>
-            
+
             {/* Product Links */}
             <div>
               <h3 className="font-semibold mb-4">Product</h3>
@@ -230,7 +230,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li><Link to="#" className="hover:text-white transition-colors">Integrations</Link></li>
               </ul>
             </div>
-            
+
             {/* Support Links */}
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
@@ -242,9 +242,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </ul>
             </div>
           </div>
-          
+
           <Separator className="my-8 bg-gray-700" />
-          
+
           <div className="text-center text-gray-400">
             <p>© 2025 FinWise. All rights reserved. Built with ❤️ for financial freedom.</p>
           </div>
@@ -259,4 +259,4 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 };
 
-export default Layout; 
+export default Layout;
