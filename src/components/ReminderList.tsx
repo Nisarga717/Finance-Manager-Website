@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../context/authContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Calendar, Bell, Clock, CheckCircle, AlertCircle, RotateCcw } from "lucide-react";
 
 interface Reminder {
   id: string;
@@ -9,12 +14,14 @@ interface Reminder {
   description: string;
   reminder_date: string;
   is_recurring: boolean;
+  status?: "pending" | "completed" | "dismissed";
   created_at?: string;
 }
 
 const ReminderList: React.FC = () => {
   const { user } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user?.id) fetchReminders();
@@ -23,28 +30,77 @@ const ReminderList: React.FC = () => {
   const fetchReminders = async () => {
     if (!user?.id) return;
     
+    setIsLoading(true);
     const { data, error } = await supabase
       .from("reminders")
       .select("*")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .order("reminder_date", { ascending: true });
       
     if (error) {
       console.error("Error fetching reminders:", error);
     } else {
       setReminders(data || []);
     }
+    setIsLoading(false);
   };
 
-  const getReminderStatus = (reminderDate: string) => {
+  const updateReminderStatus = async (reminderId: string, newStatus: "pending" | "completed" | "dismissed") => {
+    const { error } = await supabase
+      .from("reminders")
+      .update({ status: newStatus })
+      .eq("id", reminderId);
+      
+    if (error) {
+      console.error("Error updating reminder status:", error);
+    } else {
+      // Update local state
+      setReminders(reminders.map(reminder => 
+        reminder.id === reminderId ? { ...reminder, status: newStatus } : reminder
+      ));
+    }
+  };
+
+  const getStatusColor = (reminderDate: string, status?: string) => {
+    if (status === "completed") return "default"; // green
+    if (status === "dismissed") return "secondary"; // gray
+    
     const today = new Date();
     const reminder = new Date(reminderDate);
     const daysUntilReminder = Math.ceil((reminder.getTime() - today.getTime()) / (1000 * 3600 * 24));
     
-    if (daysUntilReminder < 0) return { text: `${Math.abs(daysUntilReminder)} days ago`, color: "#6b7280" };
-    if (daysUntilReminder === 0) return { text: "Today", color: "#ef4444" };
-    if (daysUntilReminder === 1) return { text: "Tomorrow", color: "#f59e0b" };
-    if (daysUntilReminder <= 7) return { text: `In ${daysUntilReminder} days`, color: "#7c3aed" };
-    return { text: `In ${daysUntilReminder} days`, color: "#10b981" };
+    if (daysUntilReminder < 0) return "secondary"; // past due - gray
+    if (daysUntilReminder === 0) return "destructive"; // today - red
+    if (daysUntilReminder === 1) return "secondary"; // tomorrow - orange
+    if (daysUntilReminder <= 7) return "outline"; // this week - purple
+    return "default"; // future - green
+  };
+
+  const getStatusIcon = (reminderDate: string, status?: string) => {
+    if (status === "completed") return <CheckCircle className="h-4 w-4" />;
+    if (status === "dismissed") return <AlertCircle className="h-4 w-4" />;
+    
+    const today = new Date();
+    const reminder = new Date(reminderDate);
+    const daysUntilReminder = Math.ceil((reminder.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    
+    if (daysUntilReminder <= 0) return <Bell className="h-4 w-4" />;
+    return <Clock className="h-4 w-4" />;
+  };
+
+  const getReminderStatus = (reminderDate: string, status?: string) => {
+    if (status === "completed") return { text: "Completed", color: "default" };
+    if (status === "dismissed") return { text: "Dismissed", color: "secondary" };
+    
+    const today = new Date();
+    const reminder = new Date(reminderDate);
+    const daysUntilReminder = Math.ceil((reminder.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    
+    if (daysUntilReminder < 0) return { text: `${Math.abs(daysUntilReminder)} days ago`, color: "secondary" };
+    if (daysUntilReminder === 0) return { text: "Today", color: "destructive" };
+    if (daysUntilReminder === 1) return { text: "Tomorrow", color: "secondary" };
+    if (daysUntilReminder <= 7) return { text: `In ${daysUntilReminder} days`, color: "outline" };
+    return { text: `In ${daysUntilReminder} days`, color: "default" };
   };
 
   const formatDate = (dateString: string) => {
@@ -65,199 +121,128 @@ const ReminderList: React.FC = () => {
     });
   };
 
-  const containerStyles: React.CSSProperties = {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '24px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="loading-spin w-8 h-8 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading reminders...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const headerStyles: React.CSSProperties = {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#4c1d95',
-    marginBottom: '24px',
-    textAlign: 'center',
-    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
-  };
-
-  const emptyStateStyles: React.CSSProperties = {
-    textAlign: 'center',
-    padding: '60px 20px',
-    backgroundColor: '#faf5ff',
-    borderRadius: '16px',
-    border: '2px dashed #ddd6fe'
-  };
-
-  const emptyTextStyles: React.CSSProperties = {
-    fontSize: '18px',
-    color: '#6b21a8',
-    fontWeight: '500'
-  };
-
-  const cardStyles: React.CSSProperties = {
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '16px',
-    boxShadow: '0 4px 12px rgba(147, 51, 234, 0.1)',
-    border: '1px solid rgba(147, 51, 234, 0.1)',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer'
-  };
-
-  const cardHeaderStyles: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '12px'
-  };
-
-  const titleStyles: React.CSSProperties = {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#1f2937',
-    margin: '0 0 8px 0'
-  };
-
-  const descriptionStyles: React.CSSProperties = {
-    fontSize: '14px',
-    color: '#6b7280',
-    lineHeight: '1.5',
-    margin: 0
-  };
-
-  const cardBodyStyles: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-    marginBottom: '16px'
-  };
-
-  const infoItemStyles: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column' as const
-  };
-
-  const labelStyles: React.CSSProperties = {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#6b21a8',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.5px',
-    marginBottom: '4px'
-  };
-
-  const valueStyles: React.CSSProperties = {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151'
-  };
-
-  const footerStyles: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '16px',
-    borderTop: '1px solid #e5e7eb'
-  };
-
-  const badgeStyles = (color: string): React.CSSProperties => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '600',
-    backgroundColor: `${color}15`,
-    color: color,
-    border: `1px solid ${color}30`
-  });
-
-  const recurringBadgeStyles: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 8px',
-    borderRadius: '6px',
-    fontSize: '11px',
-    fontWeight: '500',
-    backgroundColor: '#f3f4f6',
-    color: '#6b7280',
-    border: '1px solid #d1d5db'
-  };
-
-  const iconStyles: React.CSSProperties = {
-    fontSize: '24px',
-    color: '#7c3aed'
-  };
+  if (reminders.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+          <Bell className="h-8 w-8 text-purple-600" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No reminders found</h3>
+        <p className="text-muted-foreground">
+          Start by adding your first reminder to never miss important dates
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div style={containerStyles}>
-      <h2 style={headerStyles}>Your Reminders</h2>
-      
-      {reminders.length === 0 ? (
-        <div style={emptyStateStyles}>
-          <p style={emptyTextStyles}>No reminders found. Start by adding your first reminder!</p>
-        </div>
-      ) : (
-        <div>
-          {reminders.map((reminder) => {
-            const status = getReminderStatus(reminder.reminder_date);
-            return (
-              <div 
-                key={reminder.id} 
-                style={cardStyles}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(147, 51, 234, 0.15)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(147, 51, 234, 0.1)';
-                }}
-              >
-                <div style={cardHeaderStyles}>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={titleStyles}>{reminder.title}</h3>
-                    {reminder.description && (
-                      <p style={descriptionStyles}>{reminder.description}</p>
-                    )}
+    <div className="space-y-4">
+      {reminders.map((reminder) => {
+        const status = getReminderStatus(reminder.reminder_date, reminder.status);
+        return (
+          <Card key={reminder.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Reminder Info */}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Bell className="h-5 w-5 text-purple-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">{reminder.title}</h3>
+                      </div>
+                      {reminder.description && (
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {reminder.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div style={iconStyles}>🔔</div>
-                </div>
 
-                <div style={cardBodyStyles}>
-                  <div style={infoItemStyles}>
-                    <span style={labelStyles}>Reminder Date</span>
-                    <span style={valueStyles}>{formatDate(reminder.reminder_date)}</span>
-                  </div>
-                  
-                  <div style={infoItemStyles}>
-                    <span style={labelStyles}>Time</span>
-                    <span style={valueStyles}>{formatTime(reminder.reminder_date)}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Reminder Date</p>
+                        <p className="text-muted-foreground">{formatDate(reminder.reminder_date)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Time</p>
+                        <p className="text-muted-foreground">{formatTime(reminder.reminder_date)}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div style={footerStyles}>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span style={badgeStyles(status.color)}>
+                {/* Status and Actions */}
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge 
+                      variant={status.color as any}
+                      className="flex items-center gap-1"
+                    >
+                      {getStatusIcon(reminder.reminder_date, reminder.status)}
                       {status.text}
-                    </span>
+                    </Badge>
+                    
                     {reminder.is_recurring && (
-                      <span style={recurringBadgeStyles}>
-                        🔄 Recurring
-                      </span>
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <RotateCcw className="h-3 w-3" />
+                        Recurring
+                      </Badge>
                     )}
                   </div>
+
+                  {/* Status Update Dropdown */}
+                  <Select
+                    value={reminder.status || "pending"}
+                    onValueChange={(value: string) => updateReminderStatus(reminder.id, value as "pending" | "completed" | "dismissed")}
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3 w-3" />
+                          Pending
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-3 w-3" />
+                          Completed
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="dismissed">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-3 w-3" />
+                          Dismissed
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

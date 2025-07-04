@@ -20,7 +20,8 @@ import {
   Wallet,
   Activity,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Trash2
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line } from "recharts";
 import { supabase } from "../lib/supabaseClient";
@@ -71,6 +72,7 @@ const Transactions: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [activeChart, setActiveChart] = useState<'pie' | 'bar' | 'line'>('pie');
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchTransactions = useCallback(async () => {
     if (!user?.id) return;
@@ -127,6 +129,29 @@ const Transactions: React.FC = () => {
       setForm({ amount: "", description: "", category: "", type: "expense" });
       setShowForm(false);
     }
+  };
+
+  const handleDeleteTransaction = async (transactionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this transaction?')) {
+      return;
+    }
+
+    setDeletingId(transactionId);
+    
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", transactionId)
+      .eq("user_id", user?.id);
+
+    if (error) {
+      console.error("Error deleting transaction:", error);
+      alert('Error deleting transaction');
+    } else {
+      fetchTransactions();
+    }
+    
+    setDeletingId(null);
   };
 
   const totalIncome = transactions
@@ -495,15 +520,30 @@ const Transactions: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-lg font-bold ${
-                        tx.type === 'income' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
-                      </p>
-                      <Badge variant={tx.type === 'income' ? 'default' : 'destructive'} className="text-xs">
-                        {tx.type}
-                      </Badge>
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <p className={`text-lg font-bold ${
+                          tx.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                        </p>
+                        <Badge variant={tx.type === 'income' ? 'default' : 'destructive'} className="text-xs">
+                          {tx.type}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTransaction(tx.id)}
+                        disabled={deletingId === tx.id}
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {deletingId === tx.id ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 ))}

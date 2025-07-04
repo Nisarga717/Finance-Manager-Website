@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../context/authContext";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Bell, Calendar, FileText, RotateCcw } from "lucide-react";
 
 interface ReminderFormData {
   title: string;
@@ -21,6 +25,7 @@ const AddReminderForm: React.FC<AddReminderFormProps> = ({ onClose }) => {
     reminder_date: "", 
     is_recurring: false 
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -36,223 +41,121 @@ const AddReminderForm: React.FC<AddReminderFormProps> = ({ onClose }) => {
     }
 
     const { title, description, reminder_date, is_recurring } = form;
+    
+    if (!title || !reminder_date) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    setIsLoading(true);
     const { error } = await supabase.from("reminders").insert([{ 
       user_id: user.id, 
       title, 
       description, 
       reminder_date, 
-      is_recurring 
+      is_recurring,
+      status: "pending"
     }]);
     
     if (error) {
       console.error("Error adding reminder:", error);
+      alert("Error adding reminder. Please try again.");
     } else {
       onClose();
     }
-  };
-
-  const formStyles: React.CSSProperties = {
-    maxWidth: '500px',
-    margin: '0 auto',
-    padding: '32px',
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    boxShadow: '0 10px 25px rgba(147, 51, 234, 0.1)',
-    border: '1px solid rgba(147, 51, 234, 0.1)',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  };
-
-  const titleStyles: React.CSSProperties = {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#4c1d95',
-    marginBottom: '24px',
-    textAlign: 'center',
-    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
-  };
-
-  const inputContainerStyles: React.CSSProperties = {
-    marginBottom: '20px'
-  };
-
-  const labelStyles: React.CSSProperties = {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#6b21a8',
-    marginBottom: '8px'
-  };
-
-  const inputStyles: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: '16px',
-    border: '2px solid #e5e7eb',
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-    backgroundColor: '#ffffff',
-    color: '#374151',
-    outline: 'none',
-    boxSizing: 'border-box'
-  };
-
-  const textareaStyles: React.CSSProperties = {
-    ...inputStyles,
-    minHeight: '100px',
-    resize: 'vertical' as const,
-    fontFamily: 'inherit'
-  };
-
-  const checkboxContainerStyles: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: '24px',
-    padding: '12px',
-    backgroundColor: '#faf5ff',
-    borderRadius: '8px',
-    border: '1px solid #e5e7eb'
-  };
-
-  const checkboxStyles: React.CSSProperties = {
-    marginRight: '12px',
-    width: '18px',
-    height: '18px',
-    accentColor: '#7c3aed'
-  };
-
-  const checkboxLabelStyles: React.CSSProperties = {
-    fontSize: '16px',
-    color: '#6b21a8',
-    fontWeight: '500',
-    cursor: 'pointer'
-  };
-
-  const buttonContainerStyles: React.CSSProperties = {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end',
-    marginTop: '32px'
-  };
-
-  const submitButtonStyles: React.CSSProperties = {
-    backgroundColor: '#7c3aed',
-    color: 'white',
-    border: 'none',
-    padding: '14px 28px',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)'
-  };
-
-  const cancelButtonStyles: React.CSSProperties = {
-    backgroundColor: 'transparent',
-    color: '#6b21a8',
-    border: '2px solid #ddd6fe',
-    padding: '14px 28px',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease'
+    setIsLoading(false);
   };
 
   return (
-    <div style={formStyles}>
-      <h2 style={titleStyles}>Add New Reminder</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={inputContainerStyles}>
-          <label style={labelStyles}>Reminder Title *</label>
-          <input 
-            name="title" 
-            placeholder="Enter reminder title" 
-            value={form.title} 
-            onChange={handleChange} 
-            required 
-            style={inputStyles}
-            onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-          />
+    <div className="max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          {/* Reminder Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Reminder Title *
+            </Label>
+            <Input
+              id="title"
+              name="title"
+              placeholder="Enter reminder title"
+              value={form.title}
+              onChange={handleChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Description
+            </Label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Enter reminder description (optional)"
+              value={form.description}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-vertical"
+            />
+          </div>
+
+          {/* Reminder Date */}
+          <div className="space-y-2">
+            <Label htmlFor="reminder_date" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Reminder Date *
+            </Label>
+            <Input
+              id="reminder_date"
+              name="reminder_date"
+              type="date"
+              value={form.reminder_date}
+              onChange={handleChange}
+              required
+              className="w-full"
+            />
+          </div>
+
+          {/* Recurring Checkbox */}
+          <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border">
+            <input
+              type="checkbox"
+              name="is_recurring"
+              checked={form.is_recurring}
+              onChange={handleChange}
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+              id="is_recurring_reminder"
+            />
+            <Label htmlFor="is_recurring_reminder" className="flex items-center gap-2 text-sm font-medium text-purple-700 cursor-pointer">
+              <RotateCcw className="h-4 w-4" />
+              This is a recurring reminder
+            </Label>
+          </div>
         </div>
 
-        <div style={inputContainerStyles}>
-          <label style={labelStyles}>Description</label>
-          <textarea 
-            name="description" 
-            placeholder="Enter reminder description (optional)" 
-            value={form.description} 
-            onChange={handleChange} 
-            style={textareaStyles}
-            onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-          />
-        </div>
-
-        <div style={inputContainerStyles}>
-          <label style={labelStyles}>Reminder Date *</label>
-          <input 
-            name="reminder_date" 
-            type="date" 
-            value={form.reminder_date} 
-            onChange={handleChange} 
-            required 
-            style={inputStyles}
-            onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-          />
-        </div>
-
-        <div style={checkboxContainerStyles}>
-          <input 
-            type="checkbox" 
-            name="is_recurring" 
-            checked={form.is_recurring} 
-            onChange={handleChange} 
-            style={checkboxStyles}
-            id="is_recurring_reminder"
-          />
-          <label htmlFor="is_recurring_reminder" style={checkboxLabelStyles}>
-            This is a recurring reminder
-          </label>
-        </div>
-
-        <div style={buttonContainerStyles}>
-          <button 
+        {/* Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button 
             type="button" 
+            variant="outline" 
             onClick={onClose}
-            style={cancelButtonStyles}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.borderColor = '#7c3aed';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.borderColor = '#ddd6fe';
-            }}
+            className="flex-1"
+            disabled={isLoading}
           >
             Cancel
-          </button>
-          <button 
+          </Button>
+          <Button 
             type="submit"
-            style={submitButtonStyles}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#6d28d9';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(124, 58, 237, 0.4)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#7c3aed';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.3)';
-            }}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            disabled={isLoading}
           >
-            Add Reminder
-          </button>
+            {isLoading ? "Adding..." : "Add Reminder"}
+          </Button>
         </div>
       </form>
     </div>

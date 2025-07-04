@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../context/authContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Calendar, DollarSign, Tag, Clock, CheckCircle, AlertCircle, Building } from "lucide-react";
 
 interface Bill {
   id: string;
@@ -18,6 +23,7 @@ interface Bill {
 const BillList: React.FC = () => {
   const { user } = useAuth();
   const [bills, setBills] = useState<Bill[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user?.id) fetchBills();
@@ -26,29 +32,121 @@ const BillList: React.FC = () => {
   const fetchBills = async () => {
     if (!user?.id) return;
     
+    setIsLoading(true);
     const { data, error } = await supabase
       .from("bills")
       .select("*")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .order("due_date", { ascending: true });
       
     if (error) {
       console.error("Error fetching bills:", error);
     } else {
       setBills(data || []);
     }
+    setIsLoading(false);
+  };
+
+  const updateBillStatus = async (billId: string, newStatus: "pending" | "paid" | "overdue") => {
+    const bill = bills.find(b => b.id === billId);
+    if (!bill) return;
+
+    const previousStatus = bill.status || "pending";
+
+    try {
+      // Update bill status
+      const { error: billError } = await supabase
+        .from("bills")
+        .update({ status: newStatus })
+        .eq("id", billId);
+        
+      if (billError) {
+        console.error("Error updating bill status:", billError);
+        alert("Error updating bill status. Please try again.");
+        return;
+      }
+
+      // Handle transaction creation/removal based on status change
+      if (previousStatus !== "paid" && newStatus === "paid") {
+        // Create transaction when marking as paid
+        const { error: transactionError } = await supabase
+          .from("transactions")
+          .insert([{
+            user_id: user?.id,
+            amount: bill.amount,
+            description: `Bill payment: ${bill.name}${bill.company ? ` (${bill.company})` : ''}`,
+            category: bill.category || 'Bills',
+            type: 'expense',
+            date: new Date().toISOString()
+          }]);
+
+        if (transactionError) {
+          console.error("Error creating transaction:", transactionError);
+          // Revert bill status if transaction creation fails
+          await supabase
+            .from("bills")
+            .update({ status: previousStatus })
+            .eq("id", billId);
+          alert("Error creating transaction. Bill status reverted.");
+          return;
+        }
+      } else if (previousStatus === "paid" && newStatus !== "paid") {
+        // Remove the most recent transaction for this bill (by description match)
+        const { error: deleteError } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("user_id", user?.id)
+          .eq("type", "expense")
+          .eq("category", bill.category || 'Bills')
+          .ilike("description", `%${bill.name}%`)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (deleteError) {
+          console.error("Error removing transaction:", deleteError);
+          // You might want to handle this case differently
+        }
+      }
+
+      // Update local state
+      setBills(bills.map(b => 
+        b.id === billId ? { ...b, status: newStatus } : b
+      ));
+
+      // Show success message
+      if (previousStatus !== "paid" && newStatus === "paid") {
+        alert(`Bill marked as paid! Transaction created for ${formatCurrency(bill.amount)}`);
+      }
+
+    } catch (error) {
+      console.error("Error in updateBillStatus:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   const getStatusColor = (dueDate: string, status?: string) => {
-    if (status === "paid") return "#10b981"; // green
-    if (status === "overdue") return "#ef4444"; // red
+    if (status === "paid") return "default"; // green
+    if (status === "overdue") return "destructive"; // red
     
     const today = new Date();
     const due = new Date(dueDate);
     const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / (1000 * 3600 * 24));
     
-    if (daysUntilDue < 0) return "#ef4444"; // overdue - red
-    if (daysUntilDue <= 3) return "#f59e0b"; // due soon - amber
-    return "#7c3aed"; // normal - purple
+    if (daysUntilDue < 0) return "destructive"; // overdue - red
+    if (daysUntilDue <= 3) return "secondary"; // due soon - yellow
+    return "outline"; // normal - purple
+  };
+
+  const getStatusIcon = (dueDate: string, status?: string) => {
+    if (status === "paid") return <CheckCircle className="h-4 w-4" />;
+    if (status === "overdue") return <AlertCircle className="h-4 w-4" />;
+    
+    const today = new Date();
+    const due = new Date(dueDate);
+    const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / (1000 * 3600 * 24));
+    
+    if (daysUntilDue < 0) return <AlertCircle className="h-4 w-4" />;
+    return <Clock className="h-4 w-4" />;
   };
 
   const formatDate = (dateString: string) => {
@@ -72,194 +170,145 @@ const BillList: React.FC = () => {
     return `${daysUntilDue} days left`;
   };
 
-  const containerStyles: React.CSSProperties = {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '24px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+    }).format(amount);
   };
 
-  const headerStyles: React.CSSProperties = {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#4c1d95',
-    marginBottom: '24px',
-    textAlign: 'center',
-    background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="loading-spin w-8 h-8 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading bills...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const emptyStateStyles: React.CSSProperties = {
-    textAlign: 'center',
-    padding: '60px 20px',
-    backgroundColor: '#faf5ff',
-    borderRadius: '16px',
-    border: '2px dashed #ddd6fe'
-  };
-
-  const emptyTextStyles: React.CSSProperties = {
-    fontSize: '18px',
-    color: '#6b21a8',
-    fontWeight: '500'
-  };
-
-  const cardStyles: React.CSSProperties = {
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    padding: '20px',
-    marginBottom: '16px',
-    boxShadow: '0 4px 12px rgba(147, 51, 234, 0.1)',
-    border: '1px solid rgba(147, 51, 234, 0.1)',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer'
-  };
-
-  const cardHeaderStyles: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '12px'
-  };
-
-  const billNameStyles: React.CSSProperties = {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#1f2937',
-    margin: '0 0 4px 0'
-  };
-
-  const companyStyles: React.CSSProperties = {
-    fontSize: '14px',
-    color: '#6b7280',
-    margin: 0
-  };
-
-  const amountStyles: React.CSSProperties = {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#7c3aed'
-  };
-
-  const cardBodyStyles: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-    marginBottom: '16px'
-  };
-
-  const infoItemStyles: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column' as const
-  };
-
-  const labelStyles: React.CSSProperties = {
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#6b21a8',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.5px',
-    marginBottom: '4px'
-  };
-
-  const valueStyles: React.CSSProperties = {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151'
-  };
-
-  const footerStyles: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '16px',
-    borderTop: '1px solid #e5e7eb'
-  };
-
-  const badgeStyles = (color: string): React.CSSProperties => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '600',
-    backgroundColor: `${color}15`,
-    color: color,
-    border: `1px solid ${color}30`
-  });
-
-  const recurringBadgeStyles: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 8px',
-    borderRadius: '6px',
-    fontSize: '11px',
-    fontWeight: '500',
-    backgroundColor: '#f3f4f6',
-    color: '#6b7280',
-    border: '1px solid #d1d5db'
-  };
+  if (bills.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+          <DollarSign className="h-8 w-8 text-purple-600" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No bills found</h3>
+        <p className="text-muted-foreground">
+          Start by adding your first bill to track your payments
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div style={containerStyles}>
-      <h2 style={headerStyles}>Your Bills</h2>
-      
-      {bills.length === 0 ? (
-        <div style={emptyStateStyles}>
-          <p style={emptyTextStyles}>No bills found. Start by adding your first bill!</p>
-        </div>
-      ) : (
-        <div>
-          {bills.map((bill) => (
-            <div 
-              key={bill.id} 
-              style={cardStyles}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(147, 51, 234, 0.15)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(147, 51, 234, 0.1)';
-              }}
-            >
-              <div style={cardHeaderStyles}>
-                <div>
-                  <h3 style={billNameStyles}>{bill.name}</h3>
-                  {bill.company && <p style={companyStyles}>{bill.company}</p>}
+    <div className="space-y-4">
+      {bills.map((bill) => (
+        <Card key={bill.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              {/* Bill Info */}
+              <div className="flex-1 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{bill.name}</h3>
+                    {bill.company && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                        <Building className="h-3 w-3" />
+                        {bill.company}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatCurrency(bill.amount)}
+                    </div>
+                  </div>
                 </div>
-                <div style={amountStyles}>₹{bill.amount.toFixed(2)}</div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Due Date</p>
+                      <p className="text-muted-foreground">{formatDate(bill.due_date)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Category</p>
+                      <p className="text-muted-foreground">{bill.category || 'Uncategorized'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {getStatusIcon(bill.due_date, bill.status)}
+                      <div>
+                        <p className="font-medium">Status</p>
+                        <p className="text-muted-foreground">{getDaysUntilDue(bill.due_date)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div style={cardBodyStyles}>
-                <div style={infoItemStyles}>
-                  <span style={labelStyles}>Due Date</span>
-                  <span style={valueStyles}>{formatDate(bill.due_date)}</span>
-                </div>
-                
-                <div style={infoItemStyles}>
-                  <span style={labelStyles}>Category</span>
-                  <span style={valueStyles}>{bill.category || 'Uncategorized'}</span>
-                </div>
-              </div>
-
-              <div style={footerStyles}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={badgeStyles(getStatusColor(bill.due_date, bill.status))}>
-                    {getDaysUntilDue(bill.due_date)}
-                  </span>
+              {/* Status and Actions */}
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                <div className="flex gap-2 flex-wrap">
+                  <Badge 
+                    variant={getStatusColor(bill.due_date, bill.status)}
+                    className="flex items-center gap-1"
+                  >
+                    {getStatusIcon(bill.due_date, bill.status)}
+                    {bill.status ? bill.status.charAt(0).toUpperCase() + bill.status.slice(1) : 'Pending'}
+                  </Badge>
+                  
                   {bill.is_recurring && (
-                    <span style={recurringBadgeStyles}>
+                    <Badge variant="outline" className="flex items-center gap-1">
                       🔄 Recurring
-                    </span>
+                    </Badge>
                   )}
                 </div>
+
+                {/* Status Update Dropdown */}
+                                 <Select
+                   value={bill.status || "pending"}
+                   onValueChange={(value: string) => updateBillStatus(bill.id, value as "pending" | "paid" | "overdue")}
+                 >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3" />
+                        Pending
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="paid">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3" />
+                        Paid
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="overdue">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-3 w-3" />
+                        Overdue
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

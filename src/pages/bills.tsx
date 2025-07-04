@@ -1,36 +1,24 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Paper,
-  Tabs,
-  Tab,
-  Typography,
-  Fab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  useTheme,
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Close as CloseIcon,
-  Receipt as BillIcon,
-  Subscriptions as SubscriptionIcon,
-  Notifications as ReminderIcon,
-  Payment as PaymentIcon,
-  Schedule as ScheduleIcon,
-  CheckCircle as CheckIcon,
-} from '@mui/icons-material';
+import React, { useState, useEffect, useCallback } from 'react';
+import Layout from '../components/Layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { 
+  Receipt, 
+  Zap, 
+  Bell, 
+  Plus, 
+  CreditCard, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle,
+  Calendar,
+  DollarSign
+} from 'lucide-react';
 import { useAuth } from '../context/authContext';
+import { supabase } from '../lib/supabaseClient';
 
 // Import your existing components
 import AddBillForm from '../components/AddBillForm';
@@ -40,103 +28,158 @@ import SubscriptionList from '../components/SubscriptionList';
 import AddReminderForm from '../components/AddReminderForm';
 import ReminderList from '../components/ReminderList';
 
-// Create a light purple theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#8b5cf6',
-      light: '#a78bfa',
-      dark: '#7c3aed',
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#ec4899',
-      light: '#f472b6',
-      dark: '#db2777',
-    },
-    background: {
-      default: '#faf7ff',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#1e1b4b',
-      secondary: '#64748b',
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-          boxShadow: '0 10px 25px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -2px rgba(139, 92, 246, 0.05)',
-          borderRadius: '16px',
-        },
-      },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontSize: '16px',
-          fontWeight: 600,
-          minHeight: '64px',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '12px',
-          textTransform: 'none',
-          fontWeight: 600,
-        },
-      },
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-    h4: {
-      fontWeight: 700,
-      color: '#1e1b4b',
-    },
-    h6: {
-      fontWeight: 600,
-      color: '#1e1b4b',
-    },
-  },
-});
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface BillStats {
+  pending: number;
+  paid: number;
+  overdue: number;
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+interface SubscriptionStats {
+  active: number;
+  monthlySpending: number;
+}
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
+interface ReminderStats {
+  active: number;
+  dueThisWeek: number;
 }
 
 const Bills: React.FC = () => {
   const { user } = useAuth();
-  const [tabValue, setTabValue] = useState(0);
+  const [activeTab, setActiveTab] = useState('bills');
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState<'bill' | 'subscription' | 'reminder'>('bill');
+  const [billStats, setBillStats] = useState<BillStats>({ pending: 0, paid: 0, overdue: 0 });
+  const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStats>({ active: 0, monthlySpending: 0 });
+  const [reminderStats, setReminderStats] = useState<ReminderStats>({ active: 0, dueThisWeek: 0 });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
+  // Fetch bills statistics
+  const fetchBillStats = useCallback(async () => {
+    if (!user?.id) return;
+    
+    const { data: bills, error } = await supabase
+      .from("bills")
+      .select("status, due_date")
+      .eq("user_id", user.id);
+      
+    if (error) {
+      console.error("Error fetching bills:", error);
+      return;
+    }
+
+    const stats = { pending: 0, paid: 0, overdue: 0 };
+    const today = new Date();
+    
+    bills?.forEach(bill => {
+      const dueDate = new Date(bill.due_date);
+      const status = bill.status || 'pending';
+      
+      if (status === 'paid') {
+        stats.paid++;
+      } else if (status === 'overdue' || (status === 'pending' && dueDate < today)) {
+        stats.overdue++;
+      } else {
+        stats.pending++;
+      }
+    });
+    
+    setBillStats(stats);
+  }, [user?.id]);
+
+  // Fetch subscription statistics
+  const fetchSubscriptionStats = useCallback(async () => {
+    if (!user?.id) return;
+    
+    const { data: subscriptions, error } = await supabase
+      .from("subscriptions")
+      .select("status, amount, billing_cycle")
+      .eq("user_id", user.id);
+      
+    if (error) {
+      console.error("Error fetching subscriptions:", error);
+      return;
+    }
+
+    let activeCount = 0;
+    let monthlySpending = 0;
+    
+    subscriptions?.forEach(sub => {
+      if (sub.status === 'active') {
+        activeCount++;
+        
+        // Convert all billing cycles to monthly amount
+        let monthlyAmount = sub.amount;
+        switch (sub.billing_cycle) {
+          case 'yearly':
+            monthlyAmount = sub.amount / 12;
+            break;
+          case 'weekly':
+            monthlyAmount = sub.amount * 4.33; // Average weeks per month
+            break;
+          case 'monthly':
+          default:
+            monthlyAmount = sub.amount;
+            break;
+        }
+        monthlySpending += monthlyAmount;
+      }
+    });
+    
+    setSubscriptionStats({ active: activeCount, monthlySpending: Math.round(monthlySpending) });
+  }, [user?.id]);
+
+  // Fetch reminder statistics
+  const fetchReminderStats = useCallback(async () => {
+    if (!user?.id) return;
+    
+    const { data: reminders, error } = await supabase
+      .from("reminders")
+      .select("status, reminder_date")
+      .eq("user_id", user.id);
+      
+    if (error) {
+      console.error("Error fetching reminders:", error);
+      return;
+    }
+
+    let activeCount = 0;
+    let dueThisWeek = 0;
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    reminders?.forEach(reminder => {
+      const reminderDate = new Date(reminder.reminder_date);
+      const status = reminder.status || 'pending';
+      
+      if (status !== 'completed' && status !== 'dismissed') {
+        activeCount++;
+        
+        if (reminderDate >= today && reminderDate <= nextWeek) {
+          dueThisWeek++;
+        }
+      }
+    });
+    
+    setReminderStats({ active: activeCount, dueThisWeek });
+  }, [user?.id]);
+
+  // Fetch all statistics
+  const fetchAllStats = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    await Promise.all([
+      fetchBillStats(),
+      fetchSubscriptionStats(),
+      fetchReminderStats()
+    ]);
+    setIsLoading(false);
+  }, [user?.id, fetchBillStats, fetchSubscriptionStats, fetchReminderStats]);
+
+  useEffect(() => {
+    fetchAllStats();
+  }, [fetchAllStats]);
 
   const handleOpenDialog = (type: 'bill' | 'subscription' | 'reminder') => {
     setDialogType(type);
@@ -145,15 +188,8 @@ const Bills: React.FC = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-  };
-
-  const getDialogTitle = () => {
-    switch (dialogType) {
-      case 'bill': return 'Add New Bill';
-      case 'subscription': return 'Add New Subscription';
-      case 'reminder': return 'Add New Reminder';
-      default: return 'Add New Item';
-    }
+    // Refresh statistics when dialog closes (after adding new item)
+    fetchAllStats();
   };
 
   const getDialogComponent = () => {
@@ -166,296 +202,314 @@ const Bills: React.FC = () => {
   };
 
   const getAddButtonType = () => {
-    switch (tabValue) {
-      case 0: return 'bill';
-      case 1: return 'subscription';
-      case 2: return 'reminder';
+    switch (activeTab) {
+      case 'bills': return 'bill';
+      case 'subscriptions': return 'subscription';
+      case 'reminders': return 'reminder';
       default: return 'bill';
     }
   };
 
+  const getDialogTitle = () => {
+    switch (dialogType) {
+      case 'bill': return 'Add New Bill';
+      case 'subscription': return 'Add New Subscription';
+      case 'reminder': return 'Add New Reminder';
+      default: return 'Add New Item';
+    }
+  };
+
+  const getDialogDescription = () => {
+    switch (dialogType) {
+      case 'bill': return 'Add a new bill to track your upcoming payments';
+      case 'subscription': return 'Add a new subscription to manage your recurring services';
+      case 'reminder': return 'Add a new reminder to never miss important dates';
+      default: return '';
+    }
+  };
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #faf7ff 0%, #f3e8ff 100%)',
-          py: 3,
-        }}
-      >
-        <Container maxWidth="lg">
-          {/* Header */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-              Financial Management
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Manage your bills, subscriptions, and reminders all in one place
-            </Typography>
-          </Box>
+    <Layout>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4 animate-fadeInScale">
+          <h1 className="text-4xl md:text-5xl font-bold gradient-text-purple">
+            Financial Management
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Manage your bills, subscriptions, and reminders all in one place
+          </p>
+        </div>
 
-          {/* Main Content */}
-          <Paper elevation={0} sx={{ overflow: 'hidden' }}>
-            {/* Tabs */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                aria-label="financial management tabs"
-                sx={{ px: 3 }}
-              >
-                <Tab
-                  icon={<BillIcon />}
-                  label="Bills"
-                  iconPosition="start"
-                  sx={{ gap: 1 }}
-                />
-                <Tab
-                  icon={<SubscriptionIcon />}
-                  label="Subscriptions"
-                  iconPosition="start"
-                  sx={{ gap: 1 }}
-                />
-                <Tab
-                  icon={<ReminderIcon />}
-                  label="Reminders"
-                  iconPosition="start"
-                  sx={{ gap: 1 }}
-                />
-              </Tabs>
-            </Box>
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="bills" className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Bills
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Subscriptions
+            </TabsTrigger>
+            <TabsTrigger value="reminders" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Reminders
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Tab Panels */}
-            <Box sx={{ position: 'relative' }}>
-              {/* Bills Tab */}
-              <TabPanel value={tabValue} index={0}>
-                <Box sx={{ px: 3 }}>
-                  <Stack spacing={3}>
-                    {/* Bills Summary Cards */}
-                    <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', gap: 3 }}>
-                      <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #fee2e2, #fecaca)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <PaymentIcon sx={{ color: '#dc2626', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#991b1b">
-                                  Pending Bills
-                                </Typography>
-                                <Typography variant="body2" color="#7f1d1d">
-                                  Track your upcoming payments
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                      
-                      <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <CheckIcon sx={{ color: '#059669', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#065f46">
-                                  Paid Bills
-                                </Typography>
-                                <Typography variant="body2" color="#064e3b">
-                                  Successfully completed payments
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
+          {/* Bills Tab */}
+          <TabsContent value="bills" className="space-y-6">
+            {/* Bills Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Pending Bills
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-red-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {isLoading ? '...' : billStats.pending}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Awaiting payment
+                  </p>
+                </CardContent>
+              </Card>
 
-                      <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <ScheduleIcon sx={{ color: '#d97706', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#92400e">
-                                  Recurring Bills
-                                </Typography>
-                                <Typography variant="body2" color="#78350f">
-                                  Automated payment schedules
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    </Stack>
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp animation-delay-2000">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Paid Bills
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {isLoading ? '...' : billStats.paid}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Successfully completed
+                  </p>
+                </CardContent>
+              </Card>
 
-                    {/* Bills List */}
-                    <Paper elevation={0} sx={{ p: 3, backgroundColor: '#ffffff' }}>
-                      <Typography variant="h6" gutterBottom>
-                        Your Bills
-                      </Typography>
-                      <BillList />
-                    </Paper>
-                  </Stack>
-                </Box>
-              </TabPanel>
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp animation-delay-4000">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Overdue Bills
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {isLoading ? '...' : billStats.overdue}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Requires attention
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Subscriptions Tab */}
-              <TabPanel value={tabValue} index={1}>
-                <Box sx={{ px: 3 }}>
-                  <Stack spacing={3}>
-                    {/* Subscriptions Summary */}
-                    <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', gap: 3 }}>
-                      <Box sx={{ flex: '1 1 400px', minWidth: 400 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <SubscriptionIcon sx={{ color: '#4338ca', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#312e81">
-                                  Active Subscriptions
-                                </Typography>
-                                <Typography variant="body2" color="#1e1b4b">
-                                  Your recurring services
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                      
-                      <Box sx={{ flex: '1 1 400px', minWidth: 400 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #f3e8ff, #e9d5ff)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <PaymentIcon sx={{ color: '#8b5cf6', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#581c87">
-                                  Monthly Spending
-                                </Typography>
-                                <Typography variant="body2" color="#4c1d95">
-                                  Total subscription costs
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    </Stack>
+            {/* Bills List */}
+            <Card className="glass-card border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Your Bills</CardTitle>
+                  <CardDescription>
+                    Track and manage all your upcoming payments
+                  </CardDescription>
+                </div>
+                <Dialog open={openDialog && dialogType === 'bill'} onOpenChange={setOpenDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => handleOpenDialog('bill')}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Bill
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>{getDialogTitle()}</DialogTitle>
+                      <DialogDescription>{getDialogDescription()}</DialogDescription>
+                    </DialogHeader>
+                    {getDialogComponent()}
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <BillList />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    {/* Subscriptions List */}
-                    <Paper elevation={0} sx={{ p: 3, backgroundColor: '#ffffff' }}>
-                      <Typography variant="h6" gutterBottom>
-                        Your Subscriptions
-                      </Typography>
-                      <SubscriptionList />
-                    </Paper>
-                  </Stack>
-                </Box>
-              </TabPanel>
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions" className="space-y-6">
+            {/* Subscriptions Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Subscriptions
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Zap className="h-4 w-4 text-blue-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {isLoading ? '...' : subscriptionStats.active}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Currently running services
+                  </p>
+                </CardContent>
+              </Card>
 
-              {/* Reminders Tab */}
-              <TabPanel value={tabValue} index={2}>
-                <Box sx={{ px: 3 }}>
-                  <Stack spacing={3}>
-                    {/* Reminders Summary */}
-                    <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', gap: 3 }}>
-                      <Box sx={{ flex: '1 1 400px', minWidth: 400 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #fef7cd, #fef3c7)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <ReminderIcon sx={{ color: '#d97706', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#92400e">
-                                  Active Reminders
-                                </Typography>
-                                <Typography variant="body2" color="#78350f">
-                                  Never miss important dates
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp animation-delay-2000">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Monthly Spending
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-purple-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {isLoading ? '...' : `₹${subscriptionStats.monthlySpending.toLocaleString()}`}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Total subscription costs
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-                      <Box sx={{ flex: '1 1 400px', minWidth: 400 }}>
-                        <Card sx={{ background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)' }}>
-                          <CardContent>
-                            <Stack direction="row" alignItems="center" spacing={2}>
-                              <ScheduleIcon sx={{ color: '#059669', fontSize: 32 }} />
-                              <Box>
-                                <Typography variant="h6" color="#065f46">
-                                  Upcoming Events
-                                </Typography>
-                                <Typography variant="body2" color="#064e3b">
-                                  Next 7 days
-                                </Typography>
-                              </Box>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    </Stack>
+            {/* Subscriptions List */}
+            <Card className="glass-card border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Your Subscriptions</CardTitle>
+                  <CardDescription>
+                    Manage your recurring services and payments
+                  </CardDescription>
+                </div>
+                <Dialog open={openDialog && dialogType === 'subscription'} onOpenChange={setOpenDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => handleOpenDialog('subscription')}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Subscription
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>{getDialogTitle()}</DialogTitle>
+                      <DialogDescription>{getDialogDescription()}</DialogDescription>
+                    </DialogHeader>
+                    {getDialogComponent()}
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <SubscriptionList />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    {/* Reminders List */}
-                    <Paper elevation={0} sx={{ p: 3, backgroundColor: '#ffffff' }}>
-                      <Typography variant="h6" gutterBottom>
-                        Your Reminders
-                      </Typography>
-                      <ReminderList />
-                    </Paper>
-                  </Stack>
-                </Box>
-              </TabPanel>
+          {/* Reminders Tab */}
+          <TabsContent value="reminders" className="space-y-6">
+            {/* Reminders Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Reminders
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-yellow-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {isLoading ? '...' : reminderStats.active}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upcoming notifications
+                  </p>
+                </CardContent>
+              </Card>
 
-              {/* Floating Action Button */}
-              <Fab
-                color="primary"
-                aria-label="add"
-                sx={{
-                  position: 'absolute',
-                  bottom: 24,
-                  right: 24,
-                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                  },
-                }}
-                onClick={() => handleOpenDialog(getAddButtonType() as 'bill' | 'subscription' | 'reminder')}
-              >
-                <AddIcon />
-              </Fab>
-            </Box>
-          </Paper>
+              <Card className="glass-card border-0 shadow-lg hover-lift animate-slideInUp animation-delay-2000">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Due This Week
+                  </CardTitle>
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-green-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {isLoading ? '...' : reminderStats.dueThisWeek}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    In the next 7 days
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Add Item Dialog */}
-          <Dialog
-            open={openDialog}
-            onClose={handleCloseDialog}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-              },
-            }}
-          >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" component="div">
-                {getDialogTitle()}
-              </Typography>
-              <IconButton onClick={handleCloseDialog} size="small">
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent>
-              {getDialogComponent()}
-            </DialogContent>
-          </Dialog>
-        </Container>
-      </Box>
-    </ThemeProvider>
+            {/* Reminders List */}
+            <Card className="glass-card border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Your Reminders</CardTitle>
+                  <CardDescription>
+                    Never miss important dates and deadlines
+                  </CardDescription>
+                </div>
+                <Dialog open={openDialog && dialogType === 'reminder'} onOpenChange={setOpenDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => handleOpenDialog('reminder')}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Reminder
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>{getDialogTitle()}</DialogTitle>
+                      <DialogDescription>{getDialogDescription()}</DialogDescription>
+                    </DialogHeader>
+                    {getDialogComponent()}
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <ReminderList />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </Layout>
   );
 };
 
