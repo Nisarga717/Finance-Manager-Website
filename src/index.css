@@ -56,7 +56,6 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    cursor: none;
   }
 }
 
@@ -185,11 +184,6 @@
 
 .animation-delay-4000 {
   animation-delay: 4s;
-}
-
-/* Custom Cursor */
-body {
-  cursor: none;
 }
 
 .cursor-glow {
@@ -362,7 +356,7 @@ body {
   .cursor-glow {
     display: none;
   }
-  
+
   body {
     cursor: auto;
   }
