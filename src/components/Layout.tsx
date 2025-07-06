@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
+import FinancialChatbot from './FinancialChatbot';
 import {
   Zap,
   Shield,
@@ -254,6 +255,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Custom Cursor Effect */}
       <div className="fixed inset-0 pointer-events-none z-50">
         <div className="cursor-glow opacity-0"></div>
+      </div>
+
+      {/* Global Financial Chatbot - Available on all pages */}
+      <div className="fixed inset-0 pointer-events-none z-[100]">
+        <div className="pointer-events-auto">
+          <FinancialChatbot />
+        </div>
       </div>
     </div>
   );

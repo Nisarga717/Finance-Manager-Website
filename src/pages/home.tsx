@@ -217,7 +217,7 @@ const Home: React.FC = () => {
                 variant="outline" 
                 size="lg"
                 onClick={() => navigate('/transactions')}
-                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-6 text-lg btn-pulse"
+                className="border-white/30 text-purple-600 hover:bg-white/10 backdrop-blur-sm px-8 py-6 text-lg btn-pulse"
               >
                 View Transactions
               </Button>
