@@ -7,6 +7,7 @@ import Dashboard from './pages/dashboard'
 import Transactions from './pages/transaction'
 import Bills from './pages/bills'
 import Investments from './pages/investment'
+import SplitExpenses from './pages/split-expenses'
 import './App.css'
 
 import { AuthProvider, useAuth } from './context/authContext'
@@ -85,6 +86,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Investments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/split-expenses"
+          element={
+            <ProtectedRoute>
+              <SplitExpenses />
             </ProtectedRoute>
           }
         />

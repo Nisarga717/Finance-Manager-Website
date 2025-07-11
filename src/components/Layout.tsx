@@ -96,7 +96,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  FinWise
+                  FinWize
                 </h1>
                 <p className="text-sm text-muted-foreground">Smart Financial Management</p>
               </div>

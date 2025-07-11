@@ -251,6 +251,36 @@
   color: #5b21b6;
 }
 
+/* Full-screen Dialog overrides for SmartSplit analysis */
+.fullscreen-dialog[data-state="open"] {
+  width: 98vw !important;
+  height: 96vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 2vh auto !important;
+}
+
+/* Force override for shadcn Dialog component */
+[data-radix-dialog-content].fullscreen-dialog {
+  width: 98vw !important;
+  height: 96vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 2vh auto !important;
+}
+
+/* Override default dialog container constraints */
+.fullscreen-dialog {
+  --radix-dialog-content-width: 98vw !important;
+  --radix-dialog-content-height: 96vh !important;
+}
+
+/* Ensure dialog doesn't have default width constraints */
+.fullscreen-dialog,
+.fullscreen-dialog * {
+  max-width: none !important;
+}
+
 /* Special handling for error messages with emojis */
 .markdown-content p:first-child {
   margin-top: 0;
