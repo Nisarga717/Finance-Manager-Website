@@ -202,7 +202,8 @@ const Transactions: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+        <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4 animate-fadeInScale">
           <h1 className="text-4xl md:text-5xl font-bold gradient-text-purple">
@@ -551,6 +552,7 @@ const Transactions: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

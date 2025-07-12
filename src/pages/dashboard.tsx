@@ -108,11 +108,16 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="loading-spin w-12 h-12 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading your financial dashboard...</p>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 to-blue-600 opacity-20 animate-pulse"></div>
+                </div>
+                <p className="text-purple-700">Loading your financial dashboard...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -122,7 +127,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+        <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4 animate-fadeInScale">
           <h1 className="text-4xl md:text-5xl font-bold gradient-text-purple">
@@ -561,6 +567,7 @@ const Dashboard: React.FC = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </Layout>
   );

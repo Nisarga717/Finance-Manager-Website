@@ -118,27 +118,27 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-0 p-0 bg-gray-900">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-0 p-0 bg-white shadow-2xl">
         <div className="relative">
-          {/* Header with Dark Theme */}
-          <div className="relative bg-gradient-to-r from-gray-800 to-gray-700 p-6 pb-8 text-white border-b border-gray-700/50">
+          {/* Header with Light Purple Theme */}
+          <div className="relative bg-gradient-to-r from-purple-100 to-blue-100 p-6 pb-8 border-b border-purple-200">
             <div className="relative z-10">
               <DialogHeader className="text-left">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10">
-                      <Sparkles className="h-8 w-8 text-blue-400" />
+                    <div className="p-3 bg-white/60 backdrop-blur-sm rounded-2xl border border-purple-200">
+                      <Sparkles className="h-8 w-8 text-purple-600" />
                     </div>
                     <div>
-                      <DialogTitle className="text-2xl font-bold text-white">
+                      <DialogTitle className="text-2xl font-bold text-purple-800">
                         Create New Group
                       </DialogTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-400/30 text-sm">
+                        <Badge className="bg-purple-200 text-purple-700 border-purple-300 text-sm">
                           <Shield className="h-3 w-3 mr-1" />
                           Step {step === 'details' ? '1' : '2'} of 2
                         </Badge>
-                        <Badge className="bg-green-500/20 text-green-400 border-green-400/30 text-sm">
+                        <Badge className="bg-green-200 text-green-700 border-green-300 text-sm">
                           <Activity className="h-3 w-3 mr-1" />
                           SmartSplit
                         </Badge>
@@ -149,12 +149,12 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="text-gray-400 hover:text-white hover:bg-white/10 backdrop-blur-sm rounded-xl"
+                    className="text-purple-600 hover:text-purple-800 hover:bg-white/50 backdrop-blur-sm rounded-xl"
                   >
                     <X className="h-6 w-6" />
                   </Button>
                 </div>
-                <DialogDescription className="text-gray-400 leading-relaxed max-w-xl">
+                <DialogDescription className="text-purple-700 leading-relaxed max-w-xl">
                   {step === 'details' 
                     ? 'Set up your expense group with intelligent splitting and real-time balance tracking'
                     : 'Add members to your group by searching for existing users or create the group to invite them later'
@@ -164,12 +164,12 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
             </div>
           </div>
 
-          <div className="p-8 bg-gray-900">
+          <div className="p-8 bg-white">
             {step === 'details' ? (
               <div className="space-y-8">
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <Label htmlFor="groupName" className="text-lg font-medium text-gray-300">
+                    <Label htmlFor="groupName" className="text-lg font-medium text-purple-800">
                       Group Name *
                     </Label>
                     <Input
@@ -177,14 +177,14 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                       placeholder="e.g., Weekend Trip, Office Lunch, Roommates..."
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
-                      className={`h-12 text-lg rounded-xl border-2 bg-gray-800/50 text-white placeholder:text-gray-500 ${
+                      className={`h-12 text-lg rounded-xl border-2 bg-white text-purple-800 placeholder:text-purple-400 ${
                         errors.groupName 
-                          ? 'border-red-400/50 focus:border-red-400' 
-                          : 'border-gray-700 focus:border-blue-400'
+                          ? 'border-red-400 focus:border-red-500' 
+                          : 'border-purple-300 focus:border-purple-500'
                       } transition-all duration-300`}
                     />
                     {errors.groupName && (
-                      <div className="flex items-center gap-2 text-red-400 bg-red-400/10 p-3 rounded-xl border border-red-400/20">
+                      <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">
                         <X className="h-4 w-4" />
                         <p className="text-sm">{errors.groupName}</p>
                       </div>
@@ -192,7 +192,7 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="description" className="text-lg font-medium text-gray-300">
+                    <Label htmlFor="description" className="text-lg font-medium text-purple-800">
                       Description (Optional)
                     </Label>
                     <Input
@@ -200,7 +200,7 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                       placeholder="Brief description of this group's purpose..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="h-12 text-lg rounded-xl border-2 border-gray-700 bg-gray-800/50 text-white placeholder:text-gray-500 focus:border-blue-400 transition-all duration-300"
+                      className="h-12 text-lg rounded-xl border-2 border-purple-300 bg-white text-purple-800 placeholder:text-purple-400 focus:border-purple-500 transition-all duration-300"
                     />
                   </div>
                 </div>
@@ -209,13 +209,13 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                   <Button 
                     variant="outline" 
                     onClick={onClose}
-                    className="h-12 px-8 rounded-xl border-2 border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-500 transition-all duration-300"
+                    className="h-12 px-8 rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:text-purple-800 hover:border-purple-400 transition-all duration-300"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleNext} 
-                    className="h-12 px-8 bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
+                    className="h-12 px-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
                   >
                     <div className="flex items-center gap-2">
                       Next: Add Members
@@ -228,23 +228,23 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
               <div className="space-y-8">
                 {/* Search Section */}
                 <div className="space-y-4">
-                  <Label htmlFor="memberSearch" className="text-lg font-medium text-gray-300">
+                  <Label htmlFor="memberSearch" className="text-lg font-medium text-purple-800">
                     Search & Add Members
                   </Label>
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                      <Search className="h-5 w-5 text-gray-500" />
+                      <Search className="h-5 w-5 text-purple-500" />
                     </div>
                     <Input
                       id="memberSearch"
                       placeholder="Search by name or email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-12 pl-12 pr-12 text-lg rounded-xl border-2 border-gray-700 bg-gray-800/50 text-white placeholder:text-gray-500 focus:border-blue-400 transition-all duration-300"
+                      className="h-12 pl-12 pr-12 text-lg rounded-xl border-2 border-purple-300 bg-white text-purple-800 placeholder:text-purple-400 focus:border-purple-500 transition-all duration-300"
                     />
                     {isSearching && (
                       <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+                        <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
                       </div>
                     )}
                   </div>
@@ -252,9 +252,9 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
 
                 {/* Search Results */}
                 {searchResults.length > 0 && (
-                  <Card className="bg-gray-800/50 border-gray-700/50">
+                  <Card className="bg-purple-50 border-purple-200 shadow-lg">
                     <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
                         <Users className="h-5 w-5" />
                         Search Results ({searchResults.length})
                       </h3>
@@ -262,21 +262,21 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                         {searchResults.map(user => (
                           <div 
                             key={user.id}
-                            className="flex items-center justify-between p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-all duration-200"
+                            className="flex items-center justify-between p-3 rounded-xl bg-white border border-purple-200 hover:bg-purple-50 transition-all duration-200"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gray-700 rounded-xl flex items-center justify-center text-white font-semibold">
+                              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 font-semibold">
                                 {user.full_name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-medium text-white">{user.full_name}</p>
-                                <p className="text-sm text-gray-400">{user.email}</p>
+                                <p className="font-medium text-purple-800">{user.full_name}</p>
+                                <p className="text-sm text-purple-600">{user.email}</p>
                               </div>
                             </div>
                             <Button
                               size="sm"
                               onClick={() => handleAddMember(user)}
-                              className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg"
+                              className="bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300 rounded-lg"
                             >
                               <Plus className="h-4 w-4 mr-1" />
                               Add
@@ -290,25 +290,25 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
 
                 {/* Selected Members */}
                 <div className="space-y-4">
-                  <Label className="text-lg font-medium text-gray-300 flex items-center gap-2">
+                  <Label className="text-lg font-medium text-purple-800 flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
                     Selected Members ({selectedMembers.length})
                   </Label>
                   {selectedMembers.length > 0 ? (
-                    <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+                    <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
                       <div className="flex flex-wrap gap-3">
                         {selectedMembers.map(member => (
                           <Badge 
                             key={member.id} 
-                            className="flex items-center gap-2 py-2 px-3 bg-gray-700/50 text-gray-300 border-gray-600 rounded-xl"
+                            className="flex items-center gap-2 py-2 px-3 bg-white text-purple-700 border-purple-300 rounded-xl"
                           >
-                            <div className="w-6 h-6 bg-gray-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs">
+                            <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700 font-semibold text-xs">
                               {member.full_name.charAt(0).toUpperCase()}
                             </div>
                             <span className="font-medium">{member.full_name}</span>
                             <button
                               onClick={() => handleRemoveMember(member.id)}
-                              className="ml-1 p-0.5 hover:bg-red-500/20 hover:text-red-400 rounded transition-all duration-200"
+                              className="ml-1 p-0.5 hover:bg-red-100 hover:text-red-600 rounded transition-all duration-200"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -317,9 +317,9 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-800/20 border-2 border-dashed border-gray-700 rounded-xl p-8 text-center">
-                      <Users className="h-12 w-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-500 font-medium">
+                    <div className="bg-purple-50 border-2 border-dashed border-purple-300 rounded-xl p-8 text-center">
+                      <Users className="h-12 w-12 text-purple-400 mx-auto mb-3" />
+                      <p className="text-purple-600 font-medium">
                         No members selected yet. You can add members now or invite them later.
                       </p>
                     </div>
@@ -327,13 +327,13 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                 </div>
 
                 {errors.submit && (
-                  <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 flex items-center gap-3">
-                    <div className="p-2 bg-red-500/20 rounded-lg">
-                      <X className="h-4 w-4 text-red-400" />
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <X className="h-4 w-4 text-red-600" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-red-400">Error</h4>
-                      <p className="text-red-300 text-sm">{errors.submit}</p>
+                      <h4 className="font-semibold text-red-700">Error</h4>
+                      <p className="text-red-600 text-sm">{errors.submit}</p>
                     </div>
                   </div>
                 )}
@@ -342,14 +342,14 @@ const CreateGroupForm: React.FC<CreateGroupFormProps> = ({ onClose, onGroupCreat
                   <Button 
                     variant="outline" 
                     onClick={() => setStep('details')}
-                    className="h-12 px-8 rounded-xl border-2 border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-500 transition-all duration-300"
+                    className="h-12 px-8 rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:text-purple-800 hover:border-purple-400 transition-all duration-300"
                   >
                     Back
                   </Button>
                   <Button 
                     onClick={handleCreateGroup}
                     disabled={isLoading}
-                    className="h-12 px-8 bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
+                    className="h-12 px-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-semibold"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">

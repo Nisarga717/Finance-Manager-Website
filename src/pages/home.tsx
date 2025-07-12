@@ -141,58 +141,58 @@ const Home: React.FC = () => {
         </section>
 
         {/* SmartSplit Product Launch Section */}
-        <section className="relative overflow-hidden py-20 sm:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
-          <div className="absolute top-4 right-4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-4 left-4 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl"></div>
+        <section className="relative overflow-hidden py-20 sm:py-32 bg-gradient-to-br from-purple-50 via-purple-100 to-blue-50">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-200/30 to-blue-200/30"></div>
+          <div className="absolute top-4 right-4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-4 left-4 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl"></div>
           
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <div className="animate-fadeInScale">
                 <div className="flex items-center justify-center gap-3 mb-6">
-                  <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-400 border-blue-400/30 backdrop-blur-sm px-4 py-2">
+                  <Badge className="bg-gradient-to-r from-purple-200 to-blue-200 text-purple-700 border-purple-300 backdrop-blur-sm px-4 py-2">
                     <Sparkles className="h-4 w-4 mr-2" />
                     New Product Launch
                   </Badge>
-                  <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-400/30 backdrop-blur-sm px-4 py-2 animate-pulse">
+                  <Badge className="bg-gradient-to-r from-green-200 to-emerald-200 text-green-700 border-green-300 backdrop-blur-sm px-4 py-2 animate-pulse">
                     <Activity className="h-4 w-4 mr-2" />
                     Now Available
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-center gap-4 mb-8">
-                  <div className="p-4 bg-white/10 backdrop-blur-sm rounded-3xl border border-white/10">
-                    <Sparkles className="h-12 w-12 text-blue-400" />
+                  <div className="p-4 bg-white/80 backdrop-blur-sm rounded-3xl border border-purple-200">
+                    <Sparkles className="h-12 w-12 text-purple-600" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    <h2 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-purple-700 to-blue-700 bg-clip-text text-transparent">
                       SmartSplit
                     </h2>
-                    <p className="text-blue-400 text-lg font-medium">Professional Expense Management</p>
+                    <p className="text-purple-600 text-lg font-medium">Professional Expense Management</p>
                   </div>
                 </div>
 
-                <p className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl sm:text-2xl text-purple-700 mb-8 max-w-3xl mx-auto leading-relaxed">
                   Revolutionary expense splitting platform with AI-powered optimization and real-time settlement tracking. 
                   Split bills intelligently, settle debts efficiently.
                 </p>
 
                 <div className="flex items-center justify-center gap-8 mb-12">
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <div className="p-2 bg-blue-500/20 rounded-xl">
-                      <Zap className="h-5 w-5 text-blue-400" />
+                  <div className="flex items-center gap-3 text-purple-600">
+                    <div className="p-2 bg-purple-200 rounded-xl">
+                      <Zap className="h-5 w-5 text-purple-600" />
                     </div>
                     <span className="text-sm font-medium">AI-Powered Splitting</span>
                   </div>
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <div className="p-2 bg-green-500/20 rounded-xl">
-                      <Target className="h-5 w-5 text-green-400" />
+                  <div className="flex items-center gap-3 text-purple-600">
+                    <div className="p-2 bg-green-200 rounded-xl">
+                      <Target className="h-5 w-5 text-green-600" />
                     </div>
                     <span className="text-sm font-medium">Minimal Settlements</span>
                   </div>
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <div className="p-2 bg-purple-500/20 rounded-xl">
-                      <Shield className="h-5 w-5 text-purple-400" />
+                  <div className="flex items-center gap-3 text-purple-600">
+                    <div className="p-2 bg-blue-200 rounded-xl">
+                      <Shield className="h-5 w-5 text-blue-600" />
                     </div>
                     <span className="text-sm font-medium">Real-time Tracking</span>
                   </div>
@@ -202,7 +202,7 @@ const Home: React.FC = () => {
                   <Button 
                     size="lg" 
                     onClick={() => navigate('/split-expenses')}
-                    className="bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transition-all duration-300 group px-10 py-6 text-lg font-semibold rounded-2xl"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-2xl hover:shadow-3xl transition-all duration-300 group px-10 py-6 text-lg font-semibold rounded-2xl"
                   >
                     <div className="flex items-center gap-3">
                       <Sparkles className="h-6 w-6 group-hover:rotate-12 transition-transform" />
@@ -211,20 +211,20 @@ const Home: React.FC = () => {
                     </div>
                   </Button>
                   <div className="text-center">
-                    <div className="text-sm text-gray-500 mb-1">Trusted by</div>
+                    <div className="text-sm text-purple-600 mb-1">Trusted by</div>
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-2">
-                        <div className="w-8 h-8 bg-blue-500/20 rounded-full border-2 border-gray-800 flex items-center justify-center">
-                          <Users className="h-4 w-4 text-blue-400" />
+                        <div className="w-8 h-8 bg-purple-200 rounded-full border-2 border-white flex items-center justify-center">
+                          <Users className="h-4 w-4 text-purple-600" />
                         </div>
-                        <div className="w-8 h-8 bg-green-500/20 rounded-full border-2 border-gray-800 flex items-center justify-center">
-                          <Star className="h-4 w-4 text-green-400" />
+                        <div className="w-8 h-8 bg-green-200 rounded-full border-2 border-white flex items-center justify-center">
+                          <Star className="h-4 w-4 text-green-600" />
                         </div>
-                        <div className="w-8 h-8 bg-purple-500/20 rounded-full border-2 border-gray-800 flex items-center justify-center">
-                          <Activity className="h-4 w-4 text-purple-400" />
+                        <div className="w-8 h-8 bg-blue-200 rounded-full border-2 border-white flex items-center justify-center">
+                          <Activity className="h-4 w-4 text-blue-600" />
                         </div>
                       </div>
-                      <span className="text-sm text-gray-400 font-medium">1000+ early users</span>
+                      <span className="text-sm text-purple-600 font-medium">1000+ early users</span>
                     </div>
                   </div>
                 </div>
@@ -234,25 +234,25 @@ const Home: React.FC = () => {
             {/* Feature highlights for SmartSplit */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-500/10 rounded-2xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors duration-300">
-                  <Users className="h-8 w-8 text-blue-400" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-purple-200 rounded-2xl flex items-center justify-center group-hover:bg-purple-300 transition-colors duration-300">
+                  <Users className="h-8 w-8 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Group Management</h3>
-                <p className="text-gray-400 leading-relaxed">Create and manage multiple expense groups with intelligent member coordination</p>
+                <h3 className="text-xl font-semibold text-purple-800 mb-2">Group Management</h3>
+                <p className="text-purple-700 leading-relaxed">Create and manage multiple expense groups with intelligent member coordination</p>
               </div>
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-500/10 rounded-2xl flex items-center justify-center group-hover:bg-green-500/20 transition-colors duration-300">
-                  <BarChart3 className="h-8 w-8 text-green-400" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-200 rounded-2xl flex items-center justify-center group-hover:bg-green-300 transition-colors duration-300">
+                  <BarChart3 className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Smart Analytics</h3>
-                <p className="text-gray-400 leading-relaxed">Advanced balance calculations with settlement optimization algorithms</p>
+                <h3 className="text-xl font-semibold text-purple-800 mb-2">Smart Analytics</h3>
+                <p className="text-purple-700 leading-relaxed">Advanced balance calculations with settlement optimization algorithms</p>
               </div>
               <div className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-4 bg-purple-500/10 rounded-2xl flex items-center justify-center group-hover:bg-purple-500/20 transition-colors duration-300">
-                  <TrendingUp className="h-8 w-8 text-purple-400" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-200 rounded-2xl flex items-center justify-center group-hover:bg-blue-300 transition-colors duration-300">
+                  <TrendingUp className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Real-time Updates</h3>
-                <p className="text-gray-400 leading-relaxed">Live expense tracking and instant balance updates across all devices</p>
+                <h3 className="text-xl font-semibold text-purple-800 mb-2">Real-time Updates</h3>
+                <p className="text-purple-700 leading-relaxed">Live expense tracking and instant balance updates across all devices</p>
               </div>
             </div>
           </div>
@@ -307,8 +307,8 @@ const Home: React.FC = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="py-20 sm:py-32 bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
+        <section className="py-20 sm:py-32 bg-gradient-to-r from-purple-100 via-purple-50 to-blue-100 relative overflow-hidden">
+          <div className="absolute inset-0 bg-purple-500/5"></div>
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               {stats.map((stat, index) => (
@@ -318,14 +318,14 @@ const Home: React.FC = () => {
                   style={{ animationDelay: `${index * 500}ms` }}
                 >
                   <div className="flex items-center justify-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
-                      <stat.icon className="h-8 w-8 text-white" />
+                    <div className="w-16 h-16 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/100 transition-colors duration-300 shadow-lg border border-purple-200">
+                      <stat.icon className="h-8 w-8 text-purple-600" />
                     </div>
                   </div>
-                  <div className="text-4xl sm:text-5xl font-bold mb-2 gradient-text">
+                  <div className="text-4xl sm:text-5xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                     {stat.value}
                   </div>
-                  <div className="text-purple-200 text-lg">
+                  <div className="text-purple-700 text-lg">
                     {stat.label}
                   </div>
                 </div>
@@ -335,26 +335,26 @@ const Home: React.FC = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 sm:py-32 bg-gradient-to-r from-purple-600 to-blue-600 text-white relative overflow-hidden">
+        <section className="py-20 sm:py-32 bg-gradient-to-r from-purple-100 to-blue-100 relative overflow-hidden">
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/90 to-blue-600/90"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-200/50 to-blue-200/50"></div>
             <div className="absolute top-0 left-0 w-full h-full">
-              <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full filter blur-3xl"></div>
-              <div className="absolute bottom-10 right-10 w-96 h-96 bg-white/5 rounded-full filter blur-3xl"></div>
+              <div className="absolute top-10 left-10 w-72 h-72 bg-purple-300/20 rounded-full filter blur-3xl"></div>
+              <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-300/20 rounded-full filter blur-3xl"></div>
             </div>
           </div>
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 animate-slideInUp">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 animate-slideInUp bg-gradient-to-r from-purple-700 to-blue-700 bg-clip-text text-transparent">
               Ready to Transform Your Financial Future?
             </h2>
-            <p className="text-xl mb-8 text-purple-100 max-w-2xl mx-auto animate-slideInUp animation-delay-2000">
+            <p className="text-xl mb-8 text-purple-700 max-w-2xl mx-auto animate-slideInUp animation-delay-2000">
               Join thousands of users who have already taken control of their finances with FinWise.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slideInUp animation-delay-4000">
               <Button 
                 size="lg" 
                 onClick={() => navigate('/dashboard')}
-                className="bg-white text-purple-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-6 text-lg btn-pulse"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-6 text-lg btn-pulse"
               >
                 Get Started Now
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -363,7 +363,7 @@ const Home: React.FC = () => {
                 variant="outline" 
                 size="lg"
                 onClick={() => navigate('/transactions')}
-                className="border-white/30 text-purple-600 hover:bg-white/10 backdrop-blur-sm px-8 py-6 text-lg btn-pulse"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50 backdrop-blur-sm px-8 py-6 text-lg btn-pulse"
               >
                 View Transactions
               </Button>
